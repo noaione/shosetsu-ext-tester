@@ -14,6 +14,7 @@ object Config {
 	var PRINT_REPO_INDEX = false
 	var PRINT_METADATA = false
 	var REPEAT = false
+	var TEST_ALL_NOVELS = false
 
 
 	/** Load only the [SPECIFIC_NOVEL_URL] to test */

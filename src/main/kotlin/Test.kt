@@ -26,6 +26,7 @@ import Config.SOURCES
 import Config.SPECIFIC_CHAPTER
 import Config.SPECIFIC_NOVEL
 import Config.SPECIFIC_NOVEL_URL
+import Config.TEST_ALL_NOVELS
 import app.shosetsu.lib.*
 import app.shosetsu.lib.ExtensionType.KotlinScript
 import app.shosetsu.lib.ExtensionType.LuaScript
@@ -116,42 +117,58 @@ private fun showListing(ext: IExtension, novels: Array<Novel.Listing>) {
 
 	println()
 
-	var selectedNovel = 0
-	println(novels[selectedNovel].link)
-	var novel = outputTimedValue("ext.parseNovel") {
-		ext.parseNovel(novels[selectedNovel].link, true)
-	}
-
-	while (novel.chapters.isEmpty()) {
-		println("$CRED Chapters are empty, trying next novel $CRESET")
-		selectedNovel++
-		novel = outputTimedValue("ext.parseNovel") {
+	val collectedNovels = mutableListOf<Novel.Info>()
+	if (TEST_ALL_NOVELS) {
+		println("Testing all novels...")
+		novels.forEachIndexed { idx, nv ->
+			println("-- Index $idx : ${nv.link}")
+			val parsedNovel = outputTimedValue("ext.parseNovel[$idx]") {
+				ext.parseNovel(nv.link, loadChapters = true)
+			}
+			if (parsedNovel.chapters.isEmpty()) {
+				println("$CRED Chapters for ${nv.title} are empty, ignoring $CRESET")
+				return@forEachIndexed
+			}
+			collectedNovels.add(parsedNovel)
+		}
+	} else {
+		var selectedNovel = 0
+		println(novels[selectedNovel].link)
+		var novel = outputTimedValue("ext.parseNovel") {
 			ext.parseNovel(novels[selectedNovel].link, true)
 		}
+		while (novel.chapters.isEmpty()) {
+			println("$CRED Chapters are empty, trying next novel $CRESET")
+			selectedNovel++
+			novel = outputTimedValue("ext.parseNovel") {
+				ext.parseNovel(novels[selectedNovel].link, true)
+			}
+		}
+		collectedNovels.add(novel)
 	}
 
 	if (PRINT_NOVELS)
-		println(novel)
+		collectedNovels.forEach { nv -> println(nv) }
 
 	if (PRINT_NOVEL_STATS)
-		println("${novel.title} - ${novel.chapters.size} chapters.")
+		collectedNovels.forEach { nv -> println("${nv.title} - ${nv.chapters.size} chapters.") }
 
 	println()
 
-
-	val passage = outputTimedValue("ext.getPassage") {
-		ext.getPassage(novel.chapters[0].link)
+	println("$CCYAN Collecting passages for ${collectedNovels.size} novels! $CRESET")
+	collectedNovels.forEach { novel ->
+		val passage = outputTimedValue("ext.getPassage[${novel.title}]") {
+			ext.getPassage(novel.chapters[0].link)
+		}
+		if (PRINT_PASSAGES)
+			println("Passage:\t${passage.decodeToString()}")
+		else
+			println(with(passage.decodeToString()) {
+				if (length < 25) "Result: $this"
+				else "$length chars long result: " +
+						"${take(10)} [...] ${takeLast(10)}"
+			})
 	}
-
-
-	if (PRINT_PASSAGES)
-		println("Passage:\t${passage.decodeToString()}")
-	else
-		println(with(passage.decodeToString()) {
-			if (length < 25) "Result: $this"
-			else "$length chars long result: " +
-					"${take(10)} [...] ${takeLast(10)}"
-		})
 }
 
 @Suppress("UNCHECKED_CAST")

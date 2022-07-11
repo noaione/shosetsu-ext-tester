@@ -11,6 +11,7 @@ import Config.SOURCES
 import Config.SPECIFIC_CHAPTER
 import Config.SPECIFIC_NOVEL
 import Config.SPECIFIC_NOVEL_URL
+import Config.TEST_ALL_NOVELS
 import app.shosetsu.lib.ExtensionType
 import com.github.doomsdayrs.lib.extension_tester.BuildConfig
 import java.util.*
@@ -33,6 +34,7 @@ private const val ARGUMENT_PRINT_PASSAGES = "--print-passages"
 private const val ARGUMENT_PRINT_INDEX = "--print-index"
 private const val ARGUMENT_PRINT_METADATA = "--print-meta"
 private const val ARGUMENT_REPEAT = "--repeat"
+private const val ARGUMENT_TEST_ALL_NOVELS = "--test-all-novels"
 private const val ARGUMENT_TARGET_NOVEL = "--target-novel"
 private const val ARGUMENT_TARGET_CHAPTER = "--target-chapter"
 private const val ARGUMENT_VERSION = "--version"
@@ -67,6 +69,7 @@ fun printHelp() {
 	println("\t$ARGUMENT_PRINT_INDEX:\n\t\tPrint out repository index")
 	println("\t$ARGUMENT_PRINT_METADATA:\n\t\tPrint out meta data of an extension")
 	println("\t$ARGUMENT_REPEAT:\n\t\tRepeat a result, as sometimes there is an obscure error with reruns")
+	println("\t$ARGUMENT_TEST_ALL_NOVELS:\n\t\tTest all found novels (only run if there is not a lot of novels to test!)")
 	println("\t$ARGUMENT_TARGET_NOVEL:\n\t\tTarget a specific novel")
 	println("\t$ARGUMENT_TARGET_CHAPTER:\n\t\tTarget a specific chapter of a specific novel")
 }
@@ -141,6 +144,7 @@ fun parseConfig(args: Array<String>) {
 			ARGUMENT_PRINT_INDEX -> PRINT_REPO_INDEX = true
 			ARGUMENT_PRINT_METADATA -> PRINT_METADATA = true
 			ARGUMENT_REPEAT -> REPEAT = true
+			ARGUMENT_TEST_ALL_NOVELS -> TEST_ALL_NOVELS = true
 			ARGUMENT_TARGET_NOVEL -> {
 				if (argumentStack.isNotEmpty()) {
 					SPECIFIC_NOVEL = true
