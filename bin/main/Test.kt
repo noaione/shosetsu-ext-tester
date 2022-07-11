@@ -1,23 +1,19 @@
 /*
- * Extension Tester: Test Shosetsu extensions
- * Copyright (C) 2022 Doomsdayrs
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
+ * This file is part of shosetsu-services.
+ * shosetsu-services is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
+ * shosetsu-services is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with shosetsu-services.  If not, see https://www.gnu.org/licenses/.
  */
 
-import Config.CI_MODE
 import Config.DIRECTORY
+import Config.IGNORE_MISSING
 import Config.PRINT_LISTINGS
 import Config.PRINT_LIST_STATS
 import Config.PRINT_METADATA
@@ -32,19 +28,16 @@ import Config.SPECIFIC_CHAPTER
 import Config.SPECIFIC_NOVEL
 import Config.SPECIFIC_NOVEL_URL
 import Config.TEST_ALL_NOVELS
-import Config.VALIDATE_INDEX
-import Config.VALIDATE_METADATA
 import app.shosetsu.lib.*
+import app.shosetsu.lib.ExtensionType.KotlinScript
 import app.shosetsu.lib.ExtensionType.LuaScript
 import app.shosetsu.lib.ShosetsuSharedLib.httpClient
 import app.shosetsu.lib.json.RepoIndex
 import app.shosetsu.lib.lua.LuaExtension
 import app.shosetsu.lib.lua.ShosetsuLuaLib
 import app.shosetsu.lib.lua.shosetsuGlobals
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromStream
 import okhttp3.OkHttpClient
 import org.luaj.vm2.LuaValue
 import java.io.File
@@ -166,7 +159,17 @@ private fun showListing(ext: IExtension, novels: Array<Novel.Listing>) {
 	println("$CCYAN Collecting passages for ${collectedNovels.size} novels! $CRESET")
 	collectedNovels.forEach { novel ->
 		val passage = outputTimedValue("ext.getPassage[${novel.title}]") {
-			ext.getPassage(novel.chapters[0].link)
+			try {
+				ext.getPassage(novel.chapters[0].link)
+			} catch (ex: Exception) {
+				// check if message has HTTPException: 404 message
+				if (ex.message?.contains("HTTPException: 404") == true && IGNORE_MISSING) {
+					println("$CRED Chapter ${novel.chapters[0].link} is missing, ignoring $CRESET")
+					return@outputTimedValue "".toByteArray()
+				} else {
+					throw ex
+				}
+			}
 		}
 		if (PRINT_PASSAGES)
 			println("Passage:\t${passage.decodeToString()}")
@@ -180,7 +183,7 @@ private fun showListing(ext: IExtension, novels: Array<Novel.Listing>) {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun List<Filter<*>>.printOut(indent: Int = 0) {
+fun Array<Filter<*>>.printOut(indent: Int = 0) {
 	forEach { filter ->
 		val id = filter.id
 		val fName = filter.name
@@ -198,14 +201,13 @@ fun List<Filter<*>>.printOut(indent: Int = 0) {
 
 		println("$tabs>${name}\t[$id]\t${fName}\t={$fullName}")
 		when (filter) {
-			is Filter.FList -> {
+			is Filter.List -> {
 				filter.filters.printOut(indent + 1)
 			}
-
 			is Filter.Group<*> -> {
-				filter.filters.printOut(indent + 1)
+				(filter.filters as Array<Filter<*>>)
+					.printOut(indent + 1)
 			}
-
 			else -> {
 			}
 		}
@@ -254,7 +256,6 @@ fun setupLibs() {
 	}.build()
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 @ExperimentalTime
 fun main(args: Array<String>) {
 
@@ -264,107 +265,24 @@ fun main(args: Array<String>) {
 
 	outputTimedValue("MAIN") {
 		try {
-			val repoIndex: RepoIndex =
-				RepoIndex.repositoryJsonParser.decodeFromStream(File("$DIRECTORY/index.json").inputStream())
-
 			if (PRINT_REPO_INDEX)
 				println(outputTimedValue("RepoIndexLoad") {
-					repoIndex.prettyPrint()
+					RepoIndex.fromString(
+						File("$DIRECTORY/index.json")
+							.readText()
+					).prettyPrint()
 				})
-
-			if (VALIDATE_INDEX) {
-				// Validate extensions
-				repoIndex.extensions.forEach { extension ->
-					// Validate all extension ids are unique
-					ArrayList(repoIndex.extensions).apply {
-						remove(extension)
-					}.forEach { otherExt ->
-						if (extension.id == otherExt.id) {
-							println("Extension `${extension.name}` has the same id as `${otherExt.name}`: ${extension.id}")
-							exitProcess(1)
-						}
-					}
-					run {
-						// TODO Javascript support soon
-						val extFile =
-							File("$DIRECTORY/src/${extension.lang}/${extension.fileName}.lua")
-						if (!extFile.exists()) {
-							println("Extension `${extension.name}`(${extension.id}) is not in expected path: $extFile")
-							exitProcess(1)
-						}
-					}
-				}
-
-				// Validate libraries
-				run {
-					repoIndex.libraries.forEach { repoLibrary ->
-						// Validate lib is unique
-						ArrayList(repoIndex.libraries).apply {
-							remove(repoLibrary)
-						}.forEach { otherLib ->
-							if (repoLibrary.name == otherLib.name) {
-								println("Library `$repoLibrary` has the same name as `$otherLib`")
-								exitProcess(1)
-							}
-						}
-
-						run {
-							// TODO Javascript support soon
-							val extFile =
-								File("$DIRECTORY/lib/${repoLibrary.name}.lua")
-							if (!extFile.exists()) {
-								println("Repo $repoLibrary is not in expected path: $extFile")
-								exitProcess(1)
-							}
-						}
-
-					}
-				}
-
-				// Validate styles
-				repoIndex.styles.forEach { style ->
-					// Validate all extension ids are unique
-					ArrayList(repoIndex.styles).apply {
-						remove(style)
-					}.forEach { otherStyle ->
-						if (style.id == otherStyle.id) {
-							println("Style `${style.name}` has the same id as `${otherStyle.name}`: ${style.id}")
-							exitProcess(1)
-						}
-					}
-					run {
-						val extFile =
-							File("$DIRECTORY/styles/${style.fileName}.css")
-						if (!extFile.exists()) {
-							println("Style `${style.name}`(${style.id}) is not in expected path: $extFile")
-							exitProcess(1)
-						}
-					}
-				}
-
-				println("Index is valid")
-			}
-
-			/**
-			 * If CI mode is enabled, and repo index flag was added, simply exit, as our task was completed.
-			 */
-			if (PRINT_REPO_INDEX && CI_MODE) {
-				exitProcess(0)
-			}
 
 			run {
 				for (extensionPath in SOURCES) {
-					val extensionFile = File(extensionPath.first)
-					val repoExtension =
-						repoIndex.extensions.find {
-							it.fileName == extensionFile.nameWithoutExtension
-						}!!
 					println("\n\n========== $extensionPath ==========")
 
 
 					val extension = outputTimedValue("LuaExtension") {
+						val file = File(extensionPath.first)
 						when (extensionPath.second) {
-							LuaScript -> LuaExtension(extensionFile)
+							LuaScript -> LuaExtension(file)
+							KotlinScript -> throw Exception("Stub")
 						}
 					}
 
@@ -375,12 +293,12 @@ fun main(args: Array<String>) {
 
 
 					val settingsModel: Map<Int, *> =
-						extension.settingsModel.toList().also {
+						extension.settingsModel.also {
 							println("Settings model:")
 							it.printOut()
 						}.mapify()
 					val searchFiltersModel: Map<Int, *> =
-						extension.searchFiltersModel.toList().also {
+						extension.searchFiltersModel.also {
 							println("SearchFilters Model:")
 							it.printOut()
 						}.mapify()
@@ -395,42 +313,12 @@ fun main(args: Array<String>) {
 					if (PRINT_METADATA)
 						println(
 							"MetaData : ${
-								json.encodeToString(extension.exMetaData)
+								Json {
+									prettyPrint = true
+								}.encodeToString(extension.exMetaData)
 							}"
 						)
 					println(CRESET)
-
-					if (VALIDATE_METADATA) {
-						val metadata = extension.exMetaData
-						when {
-							extension.formatterID != metadata.id -> {
-								println("Extension id does not match metadata")
-								exitProcess(1)
-							}
-
-							repoExtension.version != metadata.version -> {
-								println("Metadata version does not match index")
-								exitProcess(1)
-							}
-
-							repoExtension.libVersion != metadata.libVersion -> {
-								println("Metadata lib version does not match index")
-								exitProcess(1)
-							}
-
-							else -> {
-								println("Metadata is valid")
-								if (CI_MODE) {
-									exitProcess(0)
-								}
-							}
-						}
-					}
-
-					if (CI_MODE && extension.hasCloudFlare) {
-						print("$CRED=== CLOUDFLARE: PLEASE TEST MANUALLY ===$CRESET")
-						continue
-					}
 
 					extension.listings.forEach { l ->
 						with(l) {

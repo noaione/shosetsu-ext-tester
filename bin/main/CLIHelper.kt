@@ -1,23 +1,5 @@
-/*
- * Extension Tester: Test Shosetsu extensions
- * Copyright (C) 2022 Doomsdayrs
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-import Config.CI_MODE
 import Config.DIRECTORY
+import Config.IGNORE_MISSING
 import Config.PRINT_LISTINGS
 import Config.PRINT_LIST_STATS
 import Config.PRINT_METADATA
@@ -31,15 +13,12 @@ import Config.SPECIFIC_CHAPTER
 import Config.SPECIFIC_NOVEL
 import Config.SPECIFIC_NOVEL_URL
 import Config.TEST_ALL_NOVELS
-import Config.VALIDATE_INDEX
 import app.shosetsu.lib.ExtensionType
-import app.shosetsu.lib.ShosetsuSharedLib
 import com.github.doomsdayrs.lib.extension_tester.BuildConfig
-import java.io.File
 import java.util.*
 import kotlin.system.exitProcess
 
-/*
+/**
  * extension-tester
  * 06 / 11 / 2021
  */
@@ -59,12 +38,8 @@ private const val ARGUMENT_REPEAT = "--repeat"
 private const val ARGUMENT_TEST_ALL_NOVELS = "--test-all-novels"
 private const val ARGUMENT_TARGET_NOVEL = "--target-novel"
 private const val ARGUMENT_TARGET_CHAPTER = "--target-chapter"
+private const val ARGUMENT_IGNORE_MISSING = "--ignore-missing"
 private const val ARGUMENT_VERSION = "--version"
-private const val ARGUMENT_CI = "--ci"
-private const val ARGUMENT_HEADERS = "--headers"
-private const val ARGUMENT_USER_AGENT = "--user-agent"
-private const val ARGUMENT_VALIDATE_METADATA = "--validate-metadata"
-private const val ARGUMENT_VALIDATE_INDEX = "--validate-index"
 
 /** Resets the color of a line */
 const val CRESET: String = "\u001B[0m"
@@ -99,11 +74,7 @@ fun printHelp() {
 	println("\t$ARGUMENT_TEST_ALL_NOVELS:\n\t\tTest all found novels (only run if there is not a lot of novels to test!)")
 	println("\t$ARGUMENT_TARGET_NOVEL:\n\t\tTarget a specific novel")
 	println("\t$ARGUMENT_TARGET_CHAPTER:\n\t\tTarget a specific chapter of a specific novel")
-	println("\t$ARGUMENT_CI:\n\t\tRun in CI mode, modifies $ARGUMENT_PRINT_INDEX")
-	println("\t$ARGUMENT_HEADERS:\n\t\tPath to a headers file to read from")
-	println("\t$ARGUMENT_USER_AGENT:\n\t\tEasily provide a User Agent to use")
-	println("\t$ARGUMENT_VALIDATE_METADATA:\n\t\tValidate the metadata, program will end if metadata is invalid")
-	println("\t$ARGUMENT_VALIDATE_INDEX:\n\t\tValidate the index, program will end if index is invalid")
+	println("\t$ARGUMENT_IGNORE_MISSING:\n\t\tIgnore missing novels (useful for testing)")
 }
 
 fun printVersion() {
@@ -132,50 +103,14 @@ fun parseConfig(args: Array<String>) {
 	val argumentStack = args.toStack()
 	do {
 		when (val argument = argumentStack.pop()) {
-			ARGUMENT_HEADERS -> {
-				val headersPath = argumentStack.pop()
-				val headersFile = File(headersPath)
-
-				val headersContent = headersFile.readText()
-				val headerEntries = headersContent.split("\n")
-
-				val headers = headerEntries.map { entry ->
-					val key = entry.substringBefore(":")
-					val value = entry.substringAfter(":")
-					key to value
-				}.toTypedArray()
-
-				ShosetsuSharedLib.shosetsuHeaders = headers
-			}
-
-			ARGUMENT_USER_AGENT -> {
-				ShosetsuSharedLib.shosetsuHeaders = arrayOf(
-					"User-Agent" to argumentStack.pop()
-				)
-			}
-
-			ARGUMENT_VALIDATE_METADATA -> {
-				Config.VALIDATE_METADATA = true
-			}
-
-			ARGUMENT_VALIDATE_INDEX -> {
-				Config.VALIDATE_INDEX = true
-			}
-
-			ARGUMENT_CI -> {
-				Config.CI_MODE = true
-			}
-
 			ARG_FLAG_QUICK_HELP -> {
 				printQuickHelp()
 				quit(0)
 			}
-
 			ARGUMENT_HELP -> {
 				printHelp()
 				quit(0)
 			}
-
 			ARG_FLAG_REPO -> {
 				if (argumentStack.isNotEmpty()) {
 					DIRECTORY = argumentStack.pop()
@@ -184,7 +119,6 @@ fun parseConfig(args: Array<String>) {
 					quit()
 				}
 			}
-
 			ARG_FLAG_EXT -> {
 				if (argumentStack.isNotEmpty()) {
 					val path = argumentStack.pop()
@@ -205,7 +139,6 @@ fun parseConfig(args: Array<String>) {
 					quit()
 				}
 			}
-
 			ARGUMENT_PRINT_LISTINGS -> PRINT_LISTINGS = true
 			ARGUMENT_PRINT_LIST_STATS -> PRINT_LIST_STATS = true
 			ARGUMENT_PRINT_NOVELS -> PRINT_NOVELS = true
@@ -215,6 +148,7 @@ fun parseConfig(args: Array<String>) {
 			ARGUMENT_PRINT_METADATA -> PRINT_METADATA = true
 			ARGUMENT_REPEAT -> REPEAT = true
 			ARGUMENT_TEST_ALL_NOVELS -> TEST_ALL_NOVELS = true
+			ARGUMENT_IGNORE_MISSING -> IGNORE_MISSING = true
 			ARGUMENT_TARGET_NOVEL -> {
 				if (argumentStack.isNotEmpty()) {
 					SPECIFIC_NOVEL = true
@@ -224,7 +158,6 @@ fun parseConfig(args: Array<String>) {
 					quit()
 				}
 			}
-
 			ARGUMENT_TARGET_CHAPTER -> {
 				if (argumentStack.isNotEmpty()) {
 					val chapter = argumentStack.pop().toIntOrNull()
@@ -239,12 +172,10 @@ fun parseConfig(args: Array<String>) {
 					quit()
 				}
 			}
-
 			ARGUMENT_VERSION -> {
 				printVersion()
 				quit(0)
 			}
-
 			else -> {
 				val fileExt = argument.substringAfterLast(".")
 				val type = when (fileExt.lowercase(Locale.getDefault())) {
@@ -262,7 +193,7 @@ fun parseConfig(args: Array<String>) {
 		}
 	} while (argumentStack.isNotEmpty())
 
-	if (!(CI_MODE && VALIDATE_INDEX || PRINT_REPO_INDEX) && !extensionSet) {
+	if (!extensionSet) {
 		printErrorln("No extension provided")
 		quit()
 	}
