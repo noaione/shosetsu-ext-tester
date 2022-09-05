@@ -13,6 +13,7 @@
  */
 
 import Config.DIRECTORY
+import Config.IGNORE_MISSING
 import Config.PRINT_LISTINGS
 import Config.PRINT_LIST_STATS
 import Config.PRINT_METADATA
@@ -158,7 +159,17 @@ private fun showListing(ext: IExtension, novels: Array<Novel.Listing>) {
 	println("$CCYAN Collecting passages for ${collectedNovels.size} novels! $CRESET")
 	collectedNovels.forEach { novel ->
 		val passage = outputTimedValue("ext.getPassage[${novel.title}]") {
-			ext.getPassage(novel.chapters[0].link)
+			try {
+				ext.getPassage(novel.chapters[0].link)
+			} catch (ex: Exception) {
+				// check if message has HTTPException: 404 message
+				if (ex.message?.contains("HTTPException: 404") == true && IGNORE_MISSING) {
+					println("$CRED Chapter ${novel.chapters[0].link} is missing, ignoring $CRESET")
+					return@outputTimedValue "".toByteArray()
+				} else {
+					throw ex
+				}
+			}
 		}
 		if (PRINT_PASSAGES)
 			println("Passage:\t${passage.decodeToString()}")

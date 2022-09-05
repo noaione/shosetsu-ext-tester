@@ -1,4 +1,5 @@
 import Config.DIRECTORY
+import Config.IGNORE_MISSING
 import Config.PRINT_LISTINGS
 import Config.PRINT_LIST_STATS
 import Config.PRINT_METADATA
@@ -37,6 +38,7 @@ private const val ARGUMENT_REPEAT = "--repeat"
 private const val ARGUMENT_TEST_ALL_NOVELS = "--test-all-novels"
 private const val ARGUMENT_TARGET_NOVEL = "--target-novel"
 private const val ARGUMENT_TARGET_CHAPTER = "--target-chapter"
+private const val ARGUMENT_IGNORE_MISSING = "--ignore-missing"
 private const val ARGUMENT_VERSION = "--version"
 
 /** Resets the color of a line */
@@ -72,6 +74,7 @@ fun printHelp() {
 	println("\t$ARGUMENT_TEST_ALL_NOVELS:\n\t\tTest all found novels (only run if there is not a lot of novels to test!)")
 	println("\t$ARGUMENT_TARGET_NOVEL:\n\t\tTarget a specific novel")
 	println("\t$ARGUMENT_TARGET_CHAPTER:\n\t\tTarget a specific chapter of a specific novel")
+	println("\t$ARGUMENT_IGNORE_MISSING:\n\t\tIgnore missing novels (useful for testing)")
 }
 
 fun printVersion() {
@@ -145,6 +148,7 @@ fun parseConfig(args: Array<String>) {
 			ARGUMENT_PRINT_METADATA -> PRINT_METADATA = true
 			ARGUMENT_REPEAT -> REPEAT = true
 			ARGUMENT_TEST_ALL_NOVELS -> TEST_ALL_NOVELS = true
+			ARGUMENT_IGNORE_MISSING -> IGNORE_MISSING = true
 			ARGUMENT_TARGET_NOVEL -> {
 				if (argumentStack.isNotEmpty()) {
 					SPECIFIC_NOVEL = true
