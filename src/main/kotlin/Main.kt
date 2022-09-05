@@ -18,6 +18,7 @@
 
 import Config.CI_MODE
 import Config.DIRECTORY
+import Config.IGNORE_MISSING
 import Config.PRINT_LISTINGS
 import Config.PRINT_LIST_STATS
 import Config.PRINT_METADATA
@@ -93,7 +94,16 @@ private fun showNovel(ext: IExtension, novelURL: String) {
 	println()
 
 	val passage = outputTimedValue("ext.getPassage") {
-		ext.getPassage(novel.chapters[SPECIFIC_CHAPTER].link)
+		try {
+			ext.getPassage(novel.chapters[0].link)
+		} catch (ex: Exception) {
+			if (ex.message?.contains("HTTPException: 404") == true && IGNORE_MISSING) {
+				println("$CRED Chapter ${novel.chapters[0].link} is missing, ignoring $CRESET")
+				return@outputTimedValue "".toByteArray()
+			} else {
+				throw ex
+			}
+		}
 	}
 
 	if (PRINT_PASSAGES)
@@ -166,7 +176,16 @@ private fun showListing(ext: IExtension, novels: Array<Novel.Listing>) {
 	println("$CCYAN Collecting passages for ${collectedNovels.size} novels! $CRESET")
 	collectedNovels.forEach { novel ->
 		val passage = outputTimedValue("ext.getPassage[${novel.title}]") {
-			ext.getPassage(novel.chapters[0].link)
+			try {
+				ext.getPassage(novel.chapters[0].link)
+			} catch (ex: Exception) {
+				if (ex.message?.contains("HTTPException: 404") == true && IGNORE_MISSING) {
+					println("$CRED Chapter ${novel.chapters[0].link} is missing, ignoring $CRESET")
+					return@outputTimedValue "".toByteArray()
+				} else {
+					throw ex
+				}
+			}
 		}
 		if (PRINT_PASSAGES)
 			println("Passage:\t${passage.decodeToString()}")

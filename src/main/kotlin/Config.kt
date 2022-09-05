@@ -35,6 +35,7 @@ object Config {
 	var PRINT_METADATA = false
 	var REPEAT = false
 	var TEST_ALL_NOVELS = false
+	var IGNORE_MISSING = false
 	var CI_MODE = false
 
 
