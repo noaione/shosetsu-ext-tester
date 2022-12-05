@@ -12,6 +12,7 @@
  * along with shosetsu-services.  If not, see https://www.gnu.org/licenses/.
  */
 
+import Config.CI_MODE
 import Config.DIRECTORY
 import Config.PRINT_LISTINGS
 import Config.PRINT_LIST_STATS
@@ -246,6 +247,13 @@ fun main(args: Array<String>) {
 					RepoIndex.repositoryJsonParser.decodeFromStream<RepoIndex>(File("$DIRECTORY/index.json").inputStream())
 						.prettyPrint()
 				})
+
+			/**
+			 * If CI mode is enabled, and repo index flag was added, simply exit, as our task was completed.
+			 */
+			if (PRINT_REPO_INDEX && CI_MODE){
+				exitProcess(0)
+			}
 
 			run {
 				for (extensionPath in SOURCES) {
