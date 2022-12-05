@@ -16,7 +16,7 @@ import com.github.doomsdayrs.lib.extension_tester.BuildConfig
 import java.util.*
 import kotlin.system.exitProcess
 
-/**
+/*
  * extension-tester
  * 06 / 11 / 2021
  */
@@ -70,7 +70,7 @@ fun printHelp() {
 	println("\t$ARGUMENT_REPEAT:\n\t\tRepeat a result, as sometimes there is an obscure error with reruns")
 	println("\t$ARGUMENT_TARGET_NOVEL:\n\t\tTarget a specific novel")
 	println("\t$ARGUMENT_TARGET_CHAPTER:\n\t\tTarget a specific chapter of a specific novel")
-	println("\t$ARGUMENT_CI:\n\t\tRun in CI mode, modifies $ARGUMENT_PRINT_INDEX & $ARGUMENT_PRINT_METADATA")
+	println("\t$ARGUMENT_CI:\n\t\tRun in CI mode, modifies $ARGUMENT_PRINT_INDEX")
 }
 
 fun printVersion() {
