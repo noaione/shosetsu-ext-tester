@@ -40,7 +40,7 @@ tasks.test {
 }
 
 application {
-	mainClass.set("TestKt")
+	mainClass.set("MainKt")
 }
 
 tasks.register<Jar>("assembleJar") {
