@@ -1,3 +1,21 @@
+/*
+ * Extension Tester: Test Shosetsu extensions
+ * Copyright (C) 2022 Doomsdayrs
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import Config.DIRECTORY
 import Config.PRINT_LISTINGS
 import Config.PRINT_LIST_STATS
@@ -16,7 +34,7 @@ import com.github.doomsdayrs.lib.extension_tester.BuildConfig
 import java.util.*
 import kotlin.system.exitProcess
 
-/**
+/*
  * extension-tester
  * 06 / 11 / 2021
  */
@@ -36,6 +54,7 @@ private const val ARGUMENT_REPEAT = "--repeat"
 private const val ARGUMENT_TARGET_NOVEL = "--target-novel"
 private const val ARGUMENT_TARGET_CHAPTER = "--target-chapter"
 private const val ARGUMENT_VERSION = "--version"
+private const val ARGUMENT_CI = "--ci"
 
 /** Resets the color of a line */
 const val CRESET: String = "\u001B[0m"
@@ -69,6 +88,7 @@ fun printHelp() {
 	println("\t$ARGUMENT_REPEAT:\n\t\tRepeat a result, as sometimes there is an obscure error with reruns")
 	println("\t$ARGUMENT_TARGET_NOVEL:\n\t\tTarget a specific novel")
 	println("\t$ARGUMENT_TARGET_CHAPTER:\n\t\tTarget a specific chapter of a specific novel")
+	println("\t$ARGUMENT_CI:\n\t\tRun in CI mode, modifies $ARGUMENT_PRINT_INDEX")
 }
 
 fun printVersion() {
@@ -97,6 +117,9 @@ fun parseConfig(args: Array<String>) {
 	val argumentStack = args.toStack()
 	do {
 		when (val argument = argumentStack.pop()) {
+			ARGUMENT_CI->{
+				Config.CI_MODE = true
+			}
 			ARG_FLAG_QUICK_HELP -> {
 				printQuickHelp()
 				quit(0)

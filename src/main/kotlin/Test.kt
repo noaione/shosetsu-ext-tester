@@ -1,17 +1,22 @@
 /*
- * This file is part of shosetsu-services.
- * shosetsu-services is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * Extension Tester: Test Shosetsu extensions
+ * Copyright (C) 2022 Doomsdayrs
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * shosetsu-services is distributed in the hope that it will be useful,
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License
- * along with shosetsu-services.  If not, see https://www.gnu.org/licenses/.
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import Config.CI_MODE
 import Config.DIRECTORY
 import Config.PRINT_LISTINGS
 import Config.PRINT_LIST_STATS
@@ -246,6 +251,13 @@ fun main(args: Array<String>) {
 					RepoIndex.repositoryJsonParser.decodeFromStream<RepoIndex>(File("$DIRECTORY/index.json").inputStream())
 						.prettyPrint()
 				})
+
+			/**
+			 * If CI mode is enabled, and repo index flag was added, simply exit, as our task was completed.
+			 */
+			if (PRINT_REPO_INDEX && CI_MODE){
+				exitProcess(0)
+			}
 
 			run {
 				for (extensionPath in SOURCES) {
