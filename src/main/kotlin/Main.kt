@@ -298,9 +298,7 @@ fun main(args: Array<String>) {
 					if (PRINT_METADATA)
 						println(
 							"MetaData : ${
-								Json {
-									prettyPrint = true
-								}.encodeToString(extension.exMetaData)
+								json.encodeToString(extension.exMetaData)
 							}"
 						)
 					println(CRESET)
