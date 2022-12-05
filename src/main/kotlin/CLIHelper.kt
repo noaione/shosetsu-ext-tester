@@ -117,17 +117,20 @@ fun parseConfig(args: Array<String>) {
 	val argumentStack = args.toStack()
 	do {
 		when (val argument = argumentStack.pop()) {
-			ARGUMENT_CI->{
+			ARGUMENT_CI -> {
 				Config.CI_MODE = true
 			}
+
 			ARG_FLAG_QUICK_HELP -> {
 				printQuickHelp()
 				quit(0)
 			}
+
 			ARGUMENT_HELP -> {
 				printHelp()
 				quit(0)
 			}
+
 			ARG_FLAG_REPO -> {
 				if (argumentStack.isNotEmpty()) {
 					DIRECTORY = argumentStack.pop()
@@ -136,6 +139,7 @@ fun parseConfig(args: Array<String>) {
 					quit()
 				}
 			}
+
 			ARG_FLAG_EXT -> {
 				if (argumentStack.isNotEmpty()) {
 					val path = argumentStack.pop()
@@ -156,6 +160,7 @@ fun parseConfig(args: Array<String>) {
 					quit()
 				}
 			}
+
 			ARGUMENT_PRINT_LISTINGS -> PRINT_LISTINGS = true
 			ARGUMENT_PRINT_LIST_STATS -> PRINT_LIST_STATS = true
 			ARGUMENT_PRINT_NOVELS -> PRINT_NOVELS = true
@@ -173,6 +178,7 @@ fun parseConfig(args: Array<String>) {
 					quit()
 				}
 			}
+
 			ARGUMENT_TARGET_CHAPTER -> {
 				if (argumentStack.isNotEmpty()) {
 					val chapter = argumentStack.pop().toIntOrNull()
@@ -187,10 +193,12 @@ fun parseConfig(args: Array<String>) {
 					quit()
 				}
 			}
+
 			ARGUMENT_VERSION -> {
 				printVersion()
 				quit(0)
 			}
+
 			else -> {
 				val fileExt = argument.substringAfterLast(".")
 				val type = when (fileExt.lowercase(Locale.getDefault())) {

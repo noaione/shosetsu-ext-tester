@@ -255,7 +255,7 @@ fun main(args: Array<String>) {
 			/**
 			 * If CI mode is enabled, and repo index flag was added, simply exit, as our task was completed.
 			 */
-			if (PRINT_REPO_INDEX && CI_MODE){
+			if (PRINT_REPO_INDEX && CI_MODE) {
 				exitProcess(0)
 			}
 
