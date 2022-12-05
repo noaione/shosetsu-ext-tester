@@ -36,6 +36,7 @@ private const val ARGUMENT_REPEAT = "--repeat"
 private const val ARGUMENT_TARGET_NOVEL = "--target-novel"
 private const val ARGUMENT_TARGET_CHAPTER = "--target-chapter"
 private const val ARGUMENT_VERSION = "--version"
+private const val ARGUMENT_CI = "--ci"
 
 /** Resets the color of a line */
 const val CRESET: String = "\u001B[0m"
@@ -69,6 +70,7 @@ fun printHelp() {
 	println("\t$ARGUMENT_REPEAT:\n\t\tRepeat a result, as sometimes there is an obscure error with reruns")
 	println("\t$ARGUMENT_TARGET_NOVEL:\n\t\tTarget a specific novel")
 	println("\t$ARGUMENT_TARGET_CHAPTER:\n\t\tTarget a specific chapter of a specific novel")
+	println("\t$ARGUMENT_CI:\n\t\tRun in CI mode, modifies $ARGUMENT_PRINT_INDEX & $ARGUMENT_PRINT_METADATA")
 }
 
 fun printVersion() {
@@ -97,6 +99,9 @@ fun parseConfig(args: Array<String>) {
 	val argumentStack = args.toStack()
 	do {
 		when (val argument = argumentStack.pop()) {
+			ARGUMENT_CI->{
+				Config.CI_MODE = true
+			}
 			ARG_FLAG_QUICK_HELP -> {
 				printQuickHelp()
 				quit(0)
