@@ -30,7 +30,9 @@ import Config.SPECIFIC_CHAPTER
 import Config.SPECIFIC_NOVEL
 import Config.SPECIFIC_NOVEL_URL
 import app.shosetsu.lib.ExtensionType
+import app.shosetsu.lib.ShosetsuSharedLib
 import com.github.doomsdayrs.lib.extension_tester.BuildConfig
+import java.io.File
 import java.util.*
 import kotlin.system.exitProcess
 
@@ -55,6 +57,8 @@ private const val ARGUMENT_TARGET_NOVEL = "--target-novel"
 private const val ARGUMENT_TARGET_CHAPTER = "--target-chapter"
 private const val ARGUMENT_VERSION = "--version"
 private const val ARGUMENT_CI = "--ci"
+private const val ARGUMENT_HEADERS = "--headers"
+private const val ARGUMENT_USER_AGENT = "--user-agent"
 
 /** Resets the color of a line */
 const val CRESET: String = "\u001B[0m"
@@ -89,6 +93,8 @@ fun printHelp() {
 	println("\t$ARGUMENT_TARGET_NOVEL:\n\t\tTarget a specific novel")
 	println("\t$ARGUMENT_TARGET_CHAPTER:\n\t\tTarget a specific chapter of a specific novel")
 	println("\t$ARGUMENT_CI:\n\t\tRun in CI mode, modifies $ARGUMENT_PRINT_INDEX")
+	println("\t$ARGUMENT_HEADERS:\n\t\tPath to a headers file to read from")
+	println("\t$ARGUMENT_USER_AGENT:\n\t\tEasily provide a User Agent to use")
 }
 
 fun printVersion() {
@@ -117,6 +123,28 @@ fun parseConfig(args: Array<String>) {
 	val argumentStack = args.toStack()
 	do {
 		when (val argument = argumentStack.pop()) {
+			ARGUMENT_HEADERS -> {
+				val headersPath = argumentStack.pop()
+				val headersFile = File(headersPath)
+
+				val headersContent = headersFile.readText()
+				val headerEntries = headersContent.split("\n")
+
+				val headers = headerEntries.map { entry ->
+					val key = entry.substringBefore(":")
+					val value = entry.substringAfter(":")
+					key to value
+				}.toTypedArray()
+
+				ShosetsuSharedLib.shosetsuHeaders = headers
+			}
+
+			ARGUMENT_USER_AGENT -> {
+				ShosetsuSharedLib.shosetsuHeaders = arrayOf(
+					"User-Agent" to argumentStack.pop()
+				)
+			}
+
 			ARGUMENT_CI -> {
 				Config.CI_MODE = true
 			}
