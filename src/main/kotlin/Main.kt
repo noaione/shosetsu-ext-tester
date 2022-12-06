@@ -302,6 +302,11 @@ fun main(args: Array<String>) {
 						)
 					println(CRESET)
 
+					if (CI_MODE && extension.hasCloudFlare) {
+						print("$CRED=== CLOUDFLARE: PLEASE TEST MANUALLY ===$CRESET")
+						continue
+					}
+
 					extension.listings.forEach { l ->
 						with(l) {
 							print("\n-------- Listing \"${name}\" ")
