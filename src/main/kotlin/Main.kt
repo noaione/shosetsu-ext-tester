@@ -161,7 +161,7 @@ private fun showListing(ext: IExtension, novels: Array<Novel.Listing>) {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun Array<Filter<*>>.printOut(indent: Int = 0) {
+fun List<Filter<*>>.printOut(indent: Int = 0) {
 	forEach { filter ->
 		val id = filter.id
 		val fName = filter.name
@@ -179,13 +179,12 @@ fun Array<Filter<*>>.printOut(indent: Int = 0) {
 
 		println("$tabs>${name}\t[$id]\t${fName}\t={$fullName}")
 		when (filter) {
-			is Filter.List -> {
+			is Filter.FList -> {
 				filter.filters.printOut(indent + 1)
 			}
 
 			is Filter.Group<*> -> {
-				(filter.filters as Array<Filter<*>>)
-					.printOut(indent + 1)
+				filter.filters.printOut(indent + 1)
 			}
 
 			else -> {
@@ -278,12 +277,12 @@ fun main(args: Array<String>) {
 
 
 					val settingsModel: Map<Int, *> =
-						extension.settingsModel.also {
+						extension.settingsModel.toList().also {
 							println("Settings model:")
 							it.printOut()
 						}.mapify()
 					val searchFiltersModel: Map<Int, *> =
-						extension.searchFiltersModel.also {
+						extension.searchFiltersModel.toList().also {
 							println("SearchFilters Model:")
 							it.printOut()
 						}.mapify()

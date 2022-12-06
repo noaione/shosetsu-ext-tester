@@ -25,7 +25,7 @@ dependencies {
 
 	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 
-	implementation("com.gitlab.shosetsuorg:kotlin-lib:1.0.0")
+	implementation("com.gitlab.shosetsuorg:kotlin-lib:v1.1.1")
 	implementation(kotlin("stdlib"))
 	implementation(kotlin("stdlib-jdk8"))
 	implementation("org.jsoup:jsoup:1.15.3")
