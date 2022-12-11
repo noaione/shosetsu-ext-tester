@@ -294,7 +294,7 @@ fun main(args: Array<String>) {
 						run {
 							// TODO Javascript support soon
 							val extFile =
-								File("$DIRECTORY/lib/${repoLibrary}.lua")
+								File("$DIRECTORY/lib/${repoLibrary.name}.lua")
 							if (!extFile.exists()) {
 								println("Repo $repoLibrary is not in expected path: $extFile")
 								exitProcess(1)
