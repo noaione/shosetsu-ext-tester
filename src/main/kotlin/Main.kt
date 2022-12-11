@@ -325,6 +325,7 @@ fun main(args: Array<String>) {
 					}
 				}
 
+				println("Index is valid")
 			}
 
 			/**
