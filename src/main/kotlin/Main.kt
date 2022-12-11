@@ -31,6 +31,7 @@ import Config.SOURCES
 import Config.SPECIFIC_CHAPTER
 import Config.SPECIFIC_NOVEL
 import Config.SPECIFIC_NOVEL_URL
+import Config.VALIDATE_METADATA
 import app.shosetsu.lib.*
 import app.shosetsu.lib.ExtensionType.LuaScript
 import app.shosetsu.lib.ShosetsuSharedLib.httpClient
@@ -245,10 +246,12 @@ fun main(args: Array<String>) {
 
 	outputTimedValue("MAIN") {
 		try {
+			val repoIndex: RepoIndex =
+				RepoIndex.repositoryJsonParser.decodeFromStream(File("$DIRECTORY/index.json").inputStream())
+
 			if (PRINT_REPO_INDEX)
 				println(outputTimedValue("RepoIndexLoad") {
-					RepoIndex.repositoryJsonParser.decodeFromStream<RepoIndex>(File("$DIRECTORY/index.json").inputStream())
-						.prettyPrint()
+					repoIndex.prettyPrint()
 				})
 
 			/**
@@ -260,6 +263,12 @@ fun main(args: Array<String>) {
 
 			run {
 				for (extensionPath in SOURCES) {
+					val repoExtension =
+						repoIndex.extensions.find {
+							it.fileName == extensionPath.first
+								.substringBefore(".")
+								.substringAfter("/")
+						}!!
 					println("\n\n========== $extensionPath ==========")
 
 
@@ -301,6 +310,33 @@ fun main(args: Array<String>) {
 							}"
 						)
 					println(CRESET)
+
+					if (VALIDATE_METADATA) {
+						val metadata = extension.exMetaData
+						when {
+							extension.formatterID != metadata.id -> {
+								println("Extension id does not match metadata")
+								exitProcess(1)
+							}
+
+							repoExtension.version != metadata.version -> {
+								println("Metadata version does not match index")
+								exitProcess(1)
+							}
+
+							repoExtension.libVersion != metadata.libVersion -> {
+								println("Metadata lib version does not match index")
+								exitProcess(1)
+							}
+
+							else -> {
+								println("Metadata is valid")
+								if (CI_MODE) {
+									exitProcess(0)
+								}
+							}
+						}
+					}
 
 					if (CI_MODE && extension.hasCloudFlare) {
 						print("$CRED=== CLOUDFLARE: PLEASE TEST MANUALLY ===$CRESET")
