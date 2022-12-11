@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import Config.CI_MODE
 import Config.DIRECTORY
 import Config.PRINT_LISTINGS
 import Config.PRINT_LIST_STATS
@@ -29,6 +30,7 @@ import Config.SOURCES
 import Config.SPECIFIC_CHAPTER
 import Config.SPECIFIC_NOVEL
 import Config.SPECIFIC_NOVEL_URL
+import Config.VALIDATE_INDEX
 import app.shosetsu.lib.ExtensionType
 import app.shosetsu.lib.ShosetsuSharedLib
 import com.github.doomsdayrs.lib.extension_tester.BuildConfig
@@ -256,7 +258,7 @@ fun parseConfig(args: Array<String>) {
 		}
 	} while (argumentStack.isNotEmpty())
 
-	if (!extensionSet) {
+	if (!(CI_MODE && VALIDATE_INDEX || PRINT_REPO_INDEX) && !extensionSet) {
 		printErrorln("No extension provided")
 		quit()
 	}
