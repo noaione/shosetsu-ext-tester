@@ -24,6 +24,7 @@ import app.shosetsu.lib.ExtensionType
  */
 object Config {
 	var VALIDATE_METADATA: Boolean = false
+	var VALIDATE_INDEX: Boolean = false
 	var SEARCH_VALUE = "world"
 	var PRINT_LISTINGS = false
 	var PRINT_LIST_STATS = false

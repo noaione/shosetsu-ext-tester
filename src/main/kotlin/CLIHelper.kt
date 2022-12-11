@@ -60,6 +60,7 @@ private const val ARGUMENT_CI = "--ci"
 private const val ARGUMENT_HEADERS = "--headers"
 private const val ARGUMENT_USER_AGENT = "--user-agent"
 private const val ARGUMENT_VALIDATE_METADATA = "--validate-metadata"
+private const val ARGUMENT_VALIDATE_INDEX = "--validate-index"
 
 /** Resets the color of a line */
 const val CRESET: String = "\u001B[0m"
@@ -97,6 +98,7 @@ fun printHelp() {
 	println("\t$ARGUMENT_HEADERS:\n\t\tPath to a headers file to read from")
 	println("\t$ARGUMENT_USER_AGENT:\n\t\tEasily provide a User Agent to use")
 	println("\t$ARGUMENT_VALIDATE_METADATA:\n\t\tValidate the metadata, program will end if metadata is invalid")
+	println("\t$ARGUMENT_VALIDATE_INDEX:\n\t\tValidate the index, program will end if index is invalid")
 }
 
 fun printVersion() {
@@ -147,8 +149,12 @@ fun parseConfig(args: Array<String>) {
 				)
 			}
 
-			ARGUMENT_VALIDATE_METADATA->{
+			ARGUMENT_VALIDATE_METADATA -> {
 				Config.VALIDATE_METADATA = true
+			}
+
+			ARGUMENT_VALIDATE_INDEX -> {
+				Config.VALIDATE_INDEX = true
 			}
 
 			ARGUMENT_CI -> {

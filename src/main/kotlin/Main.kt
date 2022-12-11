@@ -31,6 +31,7 @@ import Config.SOURCES
 import Config.SPECIFIC_CHAPTER
 import Config.SPECIFIC_NOVEL
 import Config.SPECIFIC_NOVEL_URL
+import Config.VALIDATE_INDEX
 import Config.VALIDATE_METADATA
 import app.shosetsu.lib.*
 import app.shosetsu.lib.ExtensionType.LuaScript
@@ -253,6 +254,78 @@ fun main(args: Array<String>) {
 				println(outputTimedValue("RepoIndexLoad") {
 					repoIndex.prettyPrint()
 				})
+
+			if (VALIDATE_INDEX) {
+				// Validate extensions
+				repoIndex.extensions.forEach { extension ->
+					// Validate all extension ids are unique
+					ArrayList(repoIndex.extensions).apply {
+						remove(extension)
+					}.forEach { otherExt ->
+						if (extension.id == otherExt.id) {
+							println("Extension `${extension.name}` has the same id as `${otherExt.name}`: ${extension.id}")
+							exitProcess(1)
+						}
+					}
+					run {
+						// TODO Javascript support soon
+						val extFile =
+							File("$DIRECTORY/src/${extension.lang}/${extension.fileName}.lua")
+						if (!extFile.exists()) {
+							println("Extension `${extension.name}`(${extension.id}) is not in expected path: $extFile")
+							exitProcess(1)
+						}
+					}
+				}
+
+				// Validate libraries
+				run {
+					repoIndex.libraries.forEach { repoLibrary ->
+						// Validate lib is unique
+						ArrayList(repoIndex.libraries).apply {
+							remove(repoLibrary)
+						}.forEach { otherLib ->
+							if (repoLibrary.name == otherLib.name) {
+								println("Library `$repoLibrary` has the same name as `$otherLib`")
+								exitProcess(1)
+							}
+						}
+
+						run {
+							// TODO Javascript support soon
+							val extFile =
+								File("$DIRECTORY/lib/${repoLibrary}.lua")
+							if (!extFile.exists()) {
+								println("Repo $repoLibrary is not in expected path: $extFile")
+								exitProcess(1)
+							}
+						}
+
+					}
+				}
+
+				// Validate styles
+				repoIndex.styles.forEach { style ->
+					// Validate all extension ids are unique
+					ArrayList(repoIndex.styles).apply {
+						remove(style)
+					}.forEach { otherStyle ->
+						if (style.id == otherStyle.id) {
+							println("Style `${style.name}` has the same id as `${otherStyle.name}`: ${style.id}")
+							exitProcess(1)
+						}
+					}
+					run {
+						val extFile =
+							File("$DIRECTORY/styles/${style.fileName}.css")
+						if (!extFile.exists()) {
+							println("Style `${style.name}`(${style.id}) is not in expected path: $extFile")
+							exitProcess(1)
+						}
+					}
+				}
+
+			}
 
 			/**
 			 * If CI mode is enabled, and repo index flag was added, simply exit, as our task was completed.
