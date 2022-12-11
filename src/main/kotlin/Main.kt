@@ -337,19 +337,17 @@ fun main(args: Array<String>) {
 
 			run {
 				for (extensionPath in SOURCES) {
+					val extensionFile = File(extensionPath.first)
 					val repoExtension =
 						repoIndex.extensions.find {
-							it.fileName == extensionPath.first
-								.substringBefore(".")
-								.substringAfter("/")
+							it.fileName == extensionFile.nameWithoutExtension
 						}!!
 					println("\n\n========== $extensionPath ==========")
 
 
 					val extension = outputTimedValue("LuaExtension") {
-						val file = File(extensionPath.first)
 						when (extensionPath.second) {
-							LuaScript -> LuaExtension(file)
+							LuaScript -> LuaExtension(extensionFile)
 						}
 					}
 
