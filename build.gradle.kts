@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
 	kotlin("jvm") version "1.8.0"
 	id("com.github.gmazzo.buildconfig") version "3.1.0"
@@ -14,6 +16,13 @@ repositories {
 
 java {
 	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
+
+tasks.withType<KotlinCompile>().all {
+	kotlinOptions {
+		jvmTarget = "11"
+	}
 }
 
 buildConfig {
@@ -64,4 +73,3 @@ tasks.register<Jar>("assembleJar") {
 		configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
 	)
 }
-
